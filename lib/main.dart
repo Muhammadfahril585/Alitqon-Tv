@@ -13,6 +13,7 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'firebase_options.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 
 import 'core/theme/islamic_theme.dart';
 import 'data/datasources/city_local_data_source.dart';
@@ -106,6 +107,7 @@ void main() async {
     DeviceOrientation.landscapeLeft,
     DeviceOrientation.landscapeRight,
   ]);
+  await WakelockPlus.enable();
 
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
@@ -125,7 +127,7 @@ void main() async {
   PlatformDispatcher.instance.onError = (error, stack) {
     FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
     return true;
-  };
+  }
 
   runApp(const MiqotulKhoirApp());
 }
