@@ -14,6 +14,7 @@ import '../../../widgets/header_widget.dart';
 import '../../../widgets/prayer_cards_row.dart';
 import '../../../widgets/running_text_widget.dart';
 import '../../../widgets/treasury_info_widget.dart';
+import '../../../widgets/youtube_slideshow_widget.dart'; // ← BARU (Step 3)
 
 class StandbyLayout extends StatelessWidget {
   final StandbyState state;
@@ -29,23 +30,23 @@ class StandbyLayout extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<SettingsCubit, SettingsState>(
       builder: (context, settingsState) {
-        // Baca data masjid dari SettingsCubit jika sudah loaded
         String mosqueName = 'Masjid Anda';
         String mosqueAddress = '';
         String? runningText = state.runningText;
+        List<String> youtubeUrls = [];
 
         if (settingsState is SettingsLoaded) {
           final s = settingsState.settings;
           if (s.mosqueName.isNotEmpty) mosqueName = s.mosqueName;
           mosqueAddress = s.mosqueAddress;
-          // Prioritaskan runningText dari state, fallback ke settings
           runningText ??= s.runningText;
+          youtubeUrls = s.youtubeUrls; // ← BARU (Step 4)
         }
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // HEADER
+            // ── HEADER ──────────────────────────────────────────────
             HeaderWidget(
               mosqueName: mosqueName,
               mosqueAddress: mosqueAddress,
@@ -54,54 +55,65 @@ class StandbyLayout extends StatelessWidget {
               isSettingsVisible: isSettingsVisible,
             ),
 
-            SizedBox(height: 32.h),
+            SizedBox(height: 16.h),
 
-            // BODY
+            // ── BODY ─────────────────────────────────────────────────
             Expanded(
               child: Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // Kiri: Jam Besar
-                  // RepaintBoundary mengisolasi jam dari repaint area body lain
-                  // saat update detik setiap 1 detik (GUD-001).
-                  Expanded(
-                    flex: 5,
-                    child: Center(
-                      child: RepaintBoundary(
-                        // TASK-010: DigitalClockWidget kini self-contained (StatefulWidget),
-                        // tidak lagi menerima currentTime dari state cubit.
-                        child: DigitalClockWidget(),
-                      ),
+                  // ── KIRI: Jam + Info Sholat (compact) ──────────────
+                  SizedBox(
+                    width: 340.w,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        // Jam digital (tetap self-contained)
+                        RepaintBoundary(
+                          child: DigitalClockWidget(),
+                        ),
+
+                        SizedBox(height: 12.h),
+
+                        // Info sholat berikutnya — DIPERKECIL
+                        _buildCompactInfoPanel(
+                          settingsState is SettingsLoaded
+                              ? settingsState.settings
+                              : null,
+                        ),
+                      ],
                     ),
                   ),
 
-                  // Kanan: Info Panel / Next Prayer
+                  SizedBox(width: 16.w),
+
+                  // ── KANAN: YouTube Slideshow ────────────────────────
                   Expanded(
-                    flex: 4,
-                    child: _buildInfoPanel(
-                      settingsState is SettingsLoaded
-                          ? settingsState.settings
-                          : null,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(20.r),
+                      child: youtubeUrls.isNotEmpty
+                          ? YoutubeSlideshowWidget(
+                              urls: youtubeUrls,
+                            )
+                          : _buildVideoPlaceholder(),
                     ),
                   ),
                 ],
               ),
             ),
 
-            SizedBox(height: 32.h),
+            SizedBox(height: 16.h),
 
-            // PRAYER CARDS
+            // ── PRAYER CARDS ─────────────────────────────────────────
             if (state.dailyPrayerTimes != null)
               PrayerCardsRow(
                 prayers: state.dailyPrayerTimes!.allPrayers,
                 nextPrayer: state.nextPrayer,
               ),
 
-            SizedBox(height: 24.h),
+            SizedBox(height: 16.h),
 
-            // FOOTER / RUNNING TEXT
-            // Diekstrak ke _StandbyRunningTextFooter agar terisolasi dari
-            // rebuild timer 1-detik DisplayStateCubit (TASK-008, TASK-009).
+            // ── RUNNING TEXT ─────────────────────────────────────────
             _StandbyRunningTextFooter(runningText: runningText),
           ],
         );
@@ -109,7 +121,8 @@ class StandbyLayout extends StatelessWidget {
     );
   }
 
-  Widget _buildInfoPanel(Settings? settings) {
+  // ── Info panel DIPERKECIL ─────────────────────────────────────────
+  Widget _buildCompactInfoPanel(Settings? settings) {
     if (state.nextPrayer == null || state.timeToNextPrayer == null) {
       return const SizedBox.shrink();
     }
@@ -118,100 +131,122 @@ class StandbyLayout extends StatelessWidget {
     final hours = duration.inHours;
     final minutes = duration.inMinutes.remainder(60);
 
-    String timeRemainingStr = '';
-    if (hours > 0) {
-      timeRemainingStr = '$hours Jam $minutes Menit';
-    } else {
-      timeRemainingStr = '$minutes Menit';
-    }
+    final String timeRemainingStr = hours > 0
+        ? '$hours j $minutes mnt'
+        : '$minutes menit lagi';
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        return FittedBox(
-          fit: BoxFit.scaleDown,
-          alignment: Alignment.topCenter,
-          child: SizedBox(
-            width: constraints.maxWidth,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                GlassmorphismCard(
-                  padding: EdgeInsets.all(40.w),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Label kecil
-                      Text(
-                        'Sholat Berikutnya',
-                        style: IslamicTypography.subtitle(
-                          color: IslamicColors.textSecondary,
-                        ).copyWith(fontSize: 34.sp),
-                      ),
-                      SizedBox(height: 20.h),
-                      // Nama sholat — paling dominan
-                      Text(
-                        state.nextPrayer!.name,
-                        style: IslamicTypography.heading(
-                          color: IslamicColors.goldAmber,
-                          fontWeight: FontWeight.bold,
-                        ).copyWith(fontSize: 84.sp),
-                      ),
-                      SizedBox(height: 12.h),
-                      // Countdown
-                      Text(
-                        'Dalam waktu $timeRemainingStr',
-                        style: IslamicTypography.body(
-                          color: IslamicColors.textPrimary,
-                        ).copyWith(fontSize: 36.sp),
-                      ),
-                      SizedBox(height: 28.h),
-                      // Waktu masuk
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.access_time,
-                            color: Colors.white,
-                            size: 32.w,
-                          ),
-                          SizedBox(width: 10.w),
-                          Text(
-                            'Masuk pada ${state.nextPrayer!.formattedTime}',
-                            style: IslamicTypography.body(
-                              color: Colors.white,
-                            ).copyWith(fontSize: 30.sp),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                if (settings != null && settings.isTreasuryEnabled) ...[
-                  SizedBox(height: 24.h),
-                  TreasuryInfoWidget(
-                    balance: settings.treasuryBalance,
-                    income: settings.treasuryIncome,
-                    expense: settings.treasuryExpense,
-                  ),
-                ],
-              ],
-            ),
+    return GlassmorphismCard(
+      padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 14.h),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Label atas
+          Text(
+            'Sholat Berikutnya',
+            style: IslamicTypography.subtitle(
+              color: IslamicColors.textSecondary,
+            ).copyWith(fontSize: 20.sp),
           ),
-        );
-      },
+
+          SizedBox(height: 6.h),
+
+          // Nama sholat
+          Text(
+            state.nextPrayer!.name,
+            style: IslamicTypography.heading(
+              color: IslamicColors.goldAmber,
+              fontWeight: FontWeight.bold,
+            ).copyWith(fontSize: 46.sp),
+          ),
+
+          SizedBox(height: 4.h),
+
+          // Waktu masuk
+          Row(
+            children: [
+              Icon(
+                Icons.access_time_rounded,
+                color: IslamicColors.textPrimary,
+                size: 18.w,
+              ),
+              SizedBox(width: 6.w),
+              Text(
+                state.nextPrayer!.formattedTime,
+                style: IslamicTypography.body(
+                  color: IslamicColors.textPrimary,
+                ).copyWith(fontSize: 22.sp),
+              ),
+            ],
+          ),
+
+          SizedBox(height: 4.h),
+
+          // Countdown
+          Text(
+            timeRemainingStr,
+            style: IslamicTypography.body(
+              color: IslamicColors.textSecondary,
+            ).copyWith(fontSize: 18.sp),
+          ),
+
+          // Treasury (kalau aktif) — tetap di sini tapi lebih ringkas
+          if (settings != null && settings.isTreasuryEnabled) ...[
+            SizedBox(height: 10.h),
+            Divider(color: IslamicColors.glassBorder, thickness: 0.5),
+            SizedBox(height: 6.h),
+            TreasuryInfoWidget(
+              balance: settings.treasuryBalance,
+              income: settings.treasuryIncome,
+              expense: settings.treasuryExpense,
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  // ── Placeholder saat belum ada URL YouTube ────────────────────────
+  Widget _buildVideoPlaceholder() {
+    return Container(
+      decoration: BoxDecoration(
+        color: IslamicColors.glassWhite,
+        borderRadius: BorderRadius.circular(20.r),
+        border: Border.all(
+          color: IslamicColors.glassBorder,
+          width: 1.w,
+        ),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.video_library_outlined,
+            color: IslamicColors.textSecondary,
+            size: 64.w,
+          ),
+          SizedBox(height: 16.h),
+          Text(
+            'Belum ada video',
+            style: IslamicTypography.subtitle(
+              color: IslamicColors.textSecondary,
+            ).copyWith(fontSize: 28.sp),
+          ),
+          SizedBox(height: 8.h),
+          Text(
+            'Tambahkan link YouTube\ndi menu Pengaturan',
+            textAlign: TextAlign.center,
+            style: IslamicTypography.body(
+              color: IslamicColors.textSecondary,
+            ).copyWith(fontSize: 22.sp),
+          ),
+        ],
+      ),
     );
   }
 }
 
-/// Widget footer running text yang terisolasi dari rebuild [DisplayStateCubit].
-///
-/// Menerima [runningText] sebagai `final` parameter — Flutter element
-/// reconciliation mempertahankan elemen `RepaintBoundary` dan `Marquee`
-/// (via [ValueKey]) selama nilai teks tidak berubah, sehingga animasi
-/// marquee tidak terganggu oleh timer tick 1-detik dari [DisplayStateCubit].
-///
-/// Ref: Plan refactor-running-text-performance-1 TASK-008, TASK-009.
+// ── Running Text Footer (tidak diubah) ───────────────────────────────
 class _StandbyRunningTextFooter extends StatelessWidget {
   final String? runningText;
 
@@ -219,15 +254,10 @@ class _StandbyRunningTextFooter extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Jika tidak ada teks, tampilkan spacer dengan tinggi sama agar layout
-    // Column tidak bergeser saat teks kosong.
     if (runningText == null || runningText!.isEmpty) {
       return SizedBox(height: 60.h);
     }
 
-    // RepaintBoundary mengisolasi animasi marquee dari repaint area statis
-    // di atasnya (prayer cards, header). Container solid menggantikan
-    // GlassmorphismCard agar tidak ada BackdropFilter di atas animasi (GUD-002).
     return RepaintBoundary(
       child: SizedBox(
         height: 60.h,
@@ -235,7 +265,10 @@ class _StandbyRunningTextFooter extends StatelessWidget {
           decoration: BoxDecoration(
             color: IslamicColors.glassWhite,
             borderRadius: BorderRadius.circular(16.r),
-            border: Border.all(color: IslamicColors.glassBorder, width: 1.w),
+            border: Border.all(
+              color: IslamicColors.glassBorder,
+              width: 1.w,
+            ),
           ),
           padding: EdgeInsets.symmetric(horizontal: 16.w),
           child: Center(
