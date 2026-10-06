@@ -68,6 +68,7 @@ class SettingsModel extends Settings {
     super.isPreIqomahAlertEnabled,
     super.preAdzanAlertSeconds,
     super.preIqomahAlertSeconds,
+    super.youtubeUrls,
   });
 
   /// Membuat [SettingsModel] dari raw SQLite `Map<String, dynamic>`.
@@ -135,6 +136,9 @@ class SettingsModel extends Settings {
           (map['is_pre_iqomah_alert_enabled'] as int? ?? 0) == 1,
       preAdzanAlertSeconds: map['pre_adzan_alert_seconds'] as int? ?? 10,
       preIqomahAlertSeconds: map['pre_iqomah_alert_seconds'] as int? ?? 10,
+      youtubeUrls: List<String>.from(
+        jsonDecode(map['youtube_urls'] as String? ?? '[]') as List,
+      ),
     );
   }
 
@@ -199,6 +203,7 @@ class SettingsModel extends Settings {
       'is_pre_iqomah_alert_enabled': isPreIqomahAlertEnabled ? 1 : 0,
       'pre_adzan_alert_seconds': preAdzanAlertSeconds,
       'pre_iqomah_alert_seconds': preIqomahAlertSeconds,
+      'youtube_urls': jsonEncode(youtubeUrls),
     };
   }
 }
