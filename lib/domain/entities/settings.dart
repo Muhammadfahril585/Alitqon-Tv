@@ -96,6 +96,7 @@ class Settings extends Equatable {
   final bool isPreIqomahAlertEnabled;
   final int preAdzanAlertSeconds;
   final int preIqomahAlertSeconds;
+  final List<String> youtubeUrls;
 
   const Settings({
     this.isFirstRun = true,
@@ -151,6 +152,7 @@ class Settings extends Equatable {
     this.isPreIqomahAlertEnabled = false,
     this.preAdzanAlertSeconds = 10,
     this.preIqomahAlertSeconds = 10,
+    this.youtubeUrls = const <String>[],
   });
 
   /// Membuat salinan [Settings] dengan field tertentu di-override.
@@ -208,6 +210,7 @@ class Settings extends Equatable {
     bool? isPreIqomahAlertEnabled,
     int? preAdzanAlertSeconds,
     int? preIqomahAlertSeconds,
+    List<String>? youtubeUrls,
   }) {
     return Settings(
       isFirstRun: isFirstRun ?? this.isFirstRun,
@@ -271,6 +274,7 @@ class Settings extends Equatable {
       preAdzanAlertSeconds: preAdzanAlertSeconds ?? this.preAdzanAlertSeconds,
       preIqomahAlertSeconds:
           preIqomahAlertSeconds ?? this.preIqomahAlertSeconds,
+      youtubeUrls: youtubeUrls ?? this.youtubeUrls,
     );
   }
 
@@ -329,5 +333,6 @@ class Settings extends Equatable {
     isPreIqomahAlertEnabled,
     preAdzanAlertSeconds,
     preIqomahAlertSeconds,
+    youtubeUrls,
   ];
 }
