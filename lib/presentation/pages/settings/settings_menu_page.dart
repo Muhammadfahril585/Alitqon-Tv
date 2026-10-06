@@ -20,6 +20,7 @@ import 'sections/alert_settings_section.dart';
 import 'sections/midnight_mode_section.dart';
 import 'sections/wisdom_quote_section.dart';
 import 'sections/about_section.dart';
+import 'sections/youtube_section.dart';
 
 class SettingsMenuPage extends StatefulWidget {
   const SettingsMenuPage({super.key});
@@ -43,6 +44,7 @@ class _SettingsMenuPageState extends State<SettingsMenuPage> {
     "Informasi Kas",
     "Kata Mutiara",
     "Mode Hemat Daya",
+    "Video YouTube",
     "Reset Data",
     "Tentang Aplikasi",
   ];
@@ -59,6 +61,7 @@ class _SettingsMenuPageState extends State<SettingsMenuPage> {
     TreasurySection(),
     WisdomQuoteSection(),
     MidnightModeSection(),
+    YoutubeSection(),
     ResetSection(),
     AboutSection(),
   ];
