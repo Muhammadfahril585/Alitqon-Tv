@@ -167,6 +167,13 @@ class SettingsCubit extends Cubit<SettingsState> {
   void updateRunningText(String text) {
     _debounceSave('running_text', {'running_text': text});
   }
+    /// Update daftar URL video YouTube untuk slideshow layar utama.
+  /// [urls] di-encode sebagai JSON string sebelum disimpan ke SQLite.
+  void updateYoutubeUrls(List<String> urls) {
+    _debounceSave('youtube_urls', {
+      'youtube_urls': jsonEncode(urls),
+    });
+  }
 
   void updateHijriAdjustment(int days) {
     if (days < -2 || days > 2) return;
