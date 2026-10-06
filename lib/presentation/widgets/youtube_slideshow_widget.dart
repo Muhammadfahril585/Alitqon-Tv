@@ -114,7 +114,7 @@ class _YoutubeSlideshowWidgetState extends State<YoutubeSlideshowWidget> {
     }
 
     // Kalau error → tampilkan pesan dan coba video berikutnya
-    if (value.error != PlayerError.none) {
+    if (value.error != null) {
       _cancelFallbackTimer();
       _handleVideoError();
     }
