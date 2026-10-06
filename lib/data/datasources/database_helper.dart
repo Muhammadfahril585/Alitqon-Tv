@@ -20,8 +20,7 @@ class DatabaseHelper {
   static const String _databaseName = 'miqotul_khoir.db';
 
   /// Versi database saat ini. Increment untuk setiap schema change.
-  static const int _databaseVersion = 9;
-
+  static const int _databaseVersion = 10;
   // ---------------------------------------------------------------------------
   // Singleton
   // ---------------------------------------------------------------------------
@@ -207,6 +206,12 @@ class DatabaseHelper {
         'ALTER TABLE settings ADD COLUMN pre_iqomah_alert_seconds INTEGER NOT NULL DEFAULT 10',
       );
     }
+    if (oldVersion < 10) {
+      // Tambah kolom YouTube Slideshow URLs (fitur opsional, default kosong)
+      await db.execute(
+        "ALTER TABLE settings ADD COLUMN youtube_urls TEXT NOT NULL DEFAULT '[]'",
+      );
+    }
   }
 
   // ---------------------------------------------------------------------------
@@ -376,6 +381,9 @@ class DatabaseHelper {
         is_pre_iqomah_alert_enabled INTEGER NOT NULL DEFAULT 0,
         pre_adzan_alert_seconds INTEGER NOT NULL DEFAULT 10,
         pre_iqomah_alert_seconds INTEGER NOT NULL DEFAULT 10,
+        
+        -- YouTube Slideshow (fitur opsional, default kosong)
+        youtube_urls TEXT NOT NULL DEFAULT '[]',
 
         -- Adzan Duration (Seconds)
         adzan_duration_seconds INTEGER NOT NULL DEFAULT 180,
