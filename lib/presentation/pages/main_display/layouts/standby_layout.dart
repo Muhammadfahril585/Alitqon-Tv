@@ -68,9 +68,13 @@ class StandbyLayout extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        // Jam digital (tetap self-contained)
+                        // Jam digital — FittedBox menyesuaikan ukuran kolom kiri
                         RepaintBoundary(
-                          child: DigitalClockWidget(),
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            alignment: Alignment.centerLeft,
+                            child: DigitalClockWidget(),
+                          ),
                         ),
 
                         SizedBox(height: 12.h),
