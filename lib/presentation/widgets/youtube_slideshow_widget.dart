@@ -414,3 +414,4 @@ class _YoutubeSlideshowWidgetState extends State<YoutubeSlideshowWidget> {
     ),
   );
 }
+}
