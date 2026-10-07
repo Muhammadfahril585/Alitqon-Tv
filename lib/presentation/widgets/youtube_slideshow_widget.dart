@@ -357,62 +357,60 @@ class _YoutubeSlideshowWidgetState extends State<YoutubeSlideshowWidget> {
 
   // ── Tampilan error ──────────────────────────────────────────────────
   Widget _buildErrorState() {
-    return Container(
-      decoration: BoxDecoration(
-        color: IslamicColors.glassWhite,
-        borderRadius: BorderRadius.circular(20.r),
-        border: Border.all(color: IslamicColors.glassBorder, width: 1.w),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.wifi_off_rounded,
+  return Container(
+    decoration: BoxDecoration(
+      color: IslamicColors.glassWhite,
+      borderRadius: BorderRadius.circular(20.r),
+      border: Border.all(color: IslamicColors.glassBorder, width: 1.w),
+    ),
+    child: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(Icons.wifi_off_rounded,
+            color: IslamicColors.textSecondary, size: 56.w),
+        SizedBox(height: 16.h),
+        Text(
+          _errorMessage,
+          textAlign: TextAlign.center,
+          style: IslamicTypography.body(
             color: IslamicColors.textSecondary,
-            size: 56.w,
-          ),
-          SizedBox(height: 16.h),
-          Text(
-            _errorMessage,
-            textAlign: TextAlign.center,
-            style: IslamicTypography.body(
-              color: IslamicColors.textSecondary,
-            ).copyWith(fontSize: 22.sp),
-          ),
-          SizedBox(height: 20.h),
-          // Tombol retry
-          GestureDetector(
-            onTap: () {
-              setState(() {
-                _hasError = false;
-                _errorMessage = '';
-              });
-              _controller.loadVideoById(videoId: _videoIds[_currentIndex]);
-              _startFallbackTimer();
-            },
-            child: Container(
-              padding: EdgeInsets.symmetric(
-                horizontal: 24.w,
-                vertical: 10.h,
-              ),
-              decoration: BoxDecoration(
-                color: IslamicColors.glassWhite,
-                borderRadius: BorderRadius.circular(12.r),
-                border: Border.all(
-                  color: IslamicColors.glassBorder,
-                  width: 1.w,
-                ),
-              ),
-              child: Text(
-                'Coba Lagi',
-                style: IslamicTypography.body(
-                  color: IslamicColors.goldAmber,
-                ).copyWith(fontSize: 22.sp),
-              ),
+          ).copyWith(fontSize: 22.sp),
+        ),
+        SizedBox(height: 8.h),
+        // ← TAMBAH INI: tampilkan detail error
+        Text(
+          'Video ID: ${_videoIds.isNotEmpty ? _videoIds[_currentIndex] : "kosong"}',
+          textAlign: TextAlign.center,
+          style: IslamicTypography.body(
+            color: IslamicColors.goldAmber,
+          ).copyWith(fontSize: 18.sp),
+        ),
+        SizedBox(height: 20.h),
+        GestureDetector(
+          onTap: () {
+            setState(() {
+              _hasError = false;
+              _errorMessage = '';
+            });
+            _controller.loadVideoById(videoId: _videoIds[_currentIndex]);
+            _startFallbackTimer();
+          },
+          child: Container(
+            padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 10.h),
+            decoration: BoxDecoration(
+              color: IslamicColors.glassWhite,
+              borderRadius: BorderRadius.circular(12.r),
+              border: Border.all(color: IslamicColors.glassBorder, width: 1.w),
+            ),
+            child: Text(
+              'Coba Lagi',
+              style: IslamicTypography.body(
+                color: IslamicColors.goldAmber,
+              ).copyWith(fontSize: 22.sp),
             ),
           ),
-        ],
-      ),
-    );
-  }
+        ),
+      ],
+    ),
+  );
 }
